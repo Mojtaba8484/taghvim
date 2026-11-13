@@ -1,0 +1,24 @@
+name: Final Release APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Setup Android Project
+        run: echo "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" | base64 -d | gunzip | bash
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.4"
+      - name: Build Signed APK
+        run: gradle assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Taghvim-Hooshmand-CafeBazaar-APK
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/release-key.jks
