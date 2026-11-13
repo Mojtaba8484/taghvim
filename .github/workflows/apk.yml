@@ -1,0 +1,28 @@
+name: Build APK
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Prepare Project
+        run: |
+          curl -L "https://drive.google.com/uc?export=download&id=1NLuxRSHeLOkk_CwFTBqkabfkFy0hh9Ep" -o setup.sh
+          bash setup.sh
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+      - name: Build Signed APK
+        run: gradle assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Taghvim-Hooshmand-CafeBazaar-APK
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/release-key.jks
