@@ -1,0 +1,36 @@
+name: "👑 نسخه ۹ طلایی (با آیکون، تقویم، اذان و فونت درشت)"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Download & Extract Project v9
+        run: |
+          rm -rf *
+          curl -L "https://drive.google.com/uc?export=download&id=16HjbgeCAcyO31ylfJ_Sw8giN2cb089tW" -o proj_v9.tar.gz
+          tar -xzf proj_v9.tar.gz
+          python3 -c 'p="app/src/main/assets/index.html";h=open(p,encoding="utf-8").read();h=h.replace("</style>","#calendarDaysGrid>button>div:first-child>span:first-child{font-size:1.42rem!important;line-height:1.15!important;font-weight:900!important;text-shadow:0 2px 6px rgba(0,0,0,0.45)!important;}</style>",1);h=h.replace("detectInitialUserLocation();","state.city=\"arak\";safeSave(\"th_selected_city\",\"arak\");syncAllCityAndProvinceSelectors(\"arak\");renderOwghat();renderWeatherStation(true);",1);h=h.replace("const IRAN_CITIES = {};","IRAN_PROVINCES_LIST.sort((a,b)=>a.id===\"markazi\"?-1:(b.id===\"markazi\"?1:0));const IRAN_CITIES = {};",1);h=h.replace("<div class=\"grid grid-cols-3 gap-1.5 text-[11px] bg-slate-900/75 p-2 rounded-lg border border-white/10\">","<div class=\"grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px] bg-slate-900/75 p-2 rounded-lg border border-white/10\"><label class=\"flex items-center gap-1 cursor-pointer text-sky-200\"><input id=\"autoSunriseChk\" type=\"checkbox\" class=\"rounded accent-amber-400\" checked /><span>طلوع آفتاب</span></label><label class=\"flex items-center gap-1 cursor-pointer text-sky-200\"><input id=\"autoIshaChk\" type=\"checkbox\" class=\"rounded accent-amber-400\" checked /><span>اذان عشاء</span></label><label class=\"flex items-center gap-1 cursor-pointer text-amber-200\"><input id=\"autoMidnightChk\" type=\"checkbox\" class=\"rounded accent-amber-400\" checked /><span>نیمه‌شب شرعی</span></label>",1);h=h.replace("{ enabled: maghribOn, item: maghribItem }","{ enabled: maghribOn, item: maghribItem }, { enabled: (document.getElementById(\"autoSunriseChk\")?document.getElementById(\"autoSunriseChk\").checked:true), item: todayTimes[1] }, { enabled: (document.getElementById(\"autoIshaChk\")?document.getElementById(\"autoIshaChk\").checked:true), item: todayTimes[6] }, { enabled: (document.getElementById(\"autoMidnightChk\")?document.getElementById(\"autoMidnightChk\").checked:true), item: todayTimes[7] }",1);open(p,"w",encoding="utf-8").write(h)'
+          ls -la app/
+
+      - name: Build Signed Release APK v9
+        run: |
+          gradle assembleRelease --no-daemon
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Taghvim-Hooshmand-Golden-v9-APK
+          path: app/build/outputs/apk/release/app-release.apk
