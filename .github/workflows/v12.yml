@@ -1,0 +1,36 @@
+name: "🟢 نسخه ۱۲ نهایی سبز (اصلاح کامل و دریافت خودکار دسترسی‌ها)"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Download & Upgrade Project v12
+        run: |
+          rm -rf *
+          curl -L "https://drive.google.com/uc?export=download&id=1N6uaZbvuOavI7Z2xg-IKeR0HMdR6KriO" -o proj.tar.gz
+          tar -xzf proj.tar.gz
+          curl -L "https://drive.google.com/uc?export=download&id=1dBf2jwDPTn9jb9UKDUD57YpJS46nEI0i" -o patch_v12.py
+          python3 patch_v12.py
+
+      - name: Build Signed Release APK v12
+        run: |
+          gradle assembleRelease --no-daemon
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Taghvim-Hooshmand-Final-v12-APK
+          path: app/build/outputs/apk/release/app-release.apk
