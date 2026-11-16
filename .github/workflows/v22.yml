@@ -1,0 +1,32 @@
+name: 💎 نسخه ۲۲ نهایی (بانک اطلاعاتی SQLite تقویم ۲۰۰ ساله + اصلاح اعداد تقویم)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/v22.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build Signed v22 APK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pip install gdown
+          gdown 1N6uaZbvuOavI7Z2xg-IKeR0HMdR6KriO -O project.tar.gz
+          tar -xzf project.tar.gz
+          gdown 1TPNe6oYv8zls3HxIHozB5Fg09eANCRV7 -O patch.json
+          python3 -c "import json; d=json.load(open('patch.json')); open('app/src/main/java/ir/smartcalendar/hooshmand/CalendarDatabaseHelper.java','w').write(d['CalendarDatabaseHelper.java']); open('app/src/main/java/ir/smartcalendar/hooshmand/AdhanEngine.java','w').write(d['AdhanEngine.java']); open('app/src/main/java/ir/smartcalendar/hooshmand/AdhanAlarmReceiver.java','w').write(d['AdhanAlarmReceiver.java']); open('app/src/main/java/ir/smartcalendar/hooshmand/AdhanBootReceiver.java','w').write(d['AdhanBootReceiver.java']); open('app/src/main/java/ir/smartcalendar/hooshmand/AdhanMediaPlaybackService.java','w').write(d['AdhanMediaPlaybackService.java']); open('app/src/main/java/ir/smartcalendar/hooshmand/MainActivity.java','w').write(d['MainActivity.java']); open('app/src/main/AndroidManifest.xml','w').write(d['AndroidManifest.xml']); open('app/build.gradle','w').write(d['build.gradle']); open('download_azan.py','w').write(d['download_azan.py']); open('patch_v22.py','w').write(d['patch_v22.py'])"
+          python3 download_azan.py
+          python3 patch_v22.py
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SmartCalendar-Release-Signed-APK
+          path: app/build/outputs/apk/release/*.apk
