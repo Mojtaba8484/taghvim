@@ -1,0 +1,50 @@
+name: V39-FIX-SAMTEKHODA-CACHE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Download Base Project and Apply V39 Patch
+        run: |
+          pip install -q gdown
+          gdown 1N6uaZbvuOavI7Z2xg-IKeR0HMdR6KriO -O base.tar.gz
+          tar -xzf base.tar.gz
+          gdown 1rm6OnqWxRp_5p3u92f62CWO9T7ZAiWWC -O patch.py
+          python3 patch.py
+
+      - name: Build, Verify & Prepare Backup Bundle
+        run: |
+          gradle assembleRelease --no-daemon
+          mkdir -p release_bundle/Backup_For_Future_Updates
+          cp app/build/outputs/apk/release/app-release.apk release_bundle/Taghvim_Hooshmand_v39.apk
+          cp app/release-key.jks release_bundle/Backup_For_Future_Updates/release-key.jks
+          cp app/build.gradle release_bundle/Backup_For_Future_Updates/build.gradle.bak
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner 2>/dev/null | sort -V | tail -n 1)
+          if [ -n "$APKSIGNER" ]; then
+            "$APKSIGNER" verify --verbose release_bundle/Taghvim_Hooshmand_v39.apk
+          fi
+
+      - name: Upload V39 APK + Backup Folder ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Taghvim_Hooshmand_v39_With_Backup
+          path: release_bundle/
